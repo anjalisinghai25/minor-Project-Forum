@@ -1,10 +1,9 @@
 package com.discussion.forum.utils;
 
+import com.discussion.forum.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -12,27 +11,26 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
+    private String secretKey = "SuperSecretKey#123";
 
-    public String generateToken(UserDetails userDetails) {
+    private long jwtExpiration = 1000000000;
+
+    public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public boolean validateToken(String token, User userDetails) {
+        final String username = extractUserId(token);
+        return (username.equals(userDetails.getId()) && !isTokenExpired(token));
     }
 
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return extractClaims(token).getSubject();
     }
 
